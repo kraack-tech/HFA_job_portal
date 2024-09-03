@@ -1,0 +1,13 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+{% block content %}
+    <!-- User: Change Password -->
+    <h1>Change password</h1>
+
+    <!-- password form -->
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary" type="submit">Change password</button>
+    </form>
+{% endblock %}

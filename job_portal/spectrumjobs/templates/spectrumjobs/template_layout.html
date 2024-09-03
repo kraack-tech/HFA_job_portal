@@ -1,0 +1,15 @@
+<!-- Header and title templates -->
+{% include "./template_head.html" %}
+{% include "./template_nav.html" %}
+
+<!-- Main contact container -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12 mainCol">
+            {% block content %}Content not rendered!{% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Live-chat footer template -->
+{% include "./template_live_chat.html" %}

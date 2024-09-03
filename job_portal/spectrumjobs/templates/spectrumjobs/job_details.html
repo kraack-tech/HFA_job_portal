@@ -1,0 +1,11 @@
+<!-- Job post details -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">{{ job.title }}</h5>
+        <p class="card-text">{{ job.company_name }}</p>
+        <p class="card-text">Location: {{ job.location }}</p>
+        <p class="card-text">Type: {{ job.get_job_type_display }}</p>
+        <p class="card-text">{{ job.description }}</p>
+        <div id="apply-button-container"></div>
+    </div>
+</div>

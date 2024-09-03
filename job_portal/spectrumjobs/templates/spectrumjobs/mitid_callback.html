@@ -1,0 +1,69 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+{% load socialaccount %}
+{% load static %}
+
+<!-- MitID callback: Retrieves username and unique identifier for the mitid_callback view-->
+ <!-- Reference:  https://docs.criipto.com/verify/integrations/javascript/ -->
+{% block content %}
+  {% if user != None %}
+    <!-- Handle broker authentication failures -->
+    <h2>Hello, {{user}} </h2>
+    <h2>An authentication error occured</h2>
+  {% else %}
+    <!-- Handle successfull broker authentication  -->
+    <h2>Hello, <span id="user-name">user</span></h2>
+    <span style="display: none;" id="user-id">id</span>
+    <h2>Signing in... </h2>
+  {% endif %}
+
+  <!-- Submit credential for login or user creation -->
+  <form id="save-user-form" method="post" action="">
+    {% csrf_token %}
+    <input type="hidden" id="user-name-input" name="userName">
+    <input type="hidden" id="user-id-input" name="userIdentifier">
+  </form>
+  
+  <!-- MitID callback script -->
+  <script type="text/javascript">
+     // Handle authentication errors
+
+    const urlParams = new URLSearchParams(window.location.search);  // Get url parameters
+    if (urlParams.get('error') === 'access_denied') {
+      // Redirect to index (i.e. redirects to the authentication landing page as user is not authenticated)
+      window.location.href = 'http://127.0.0.1:8001/'
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      criiptoAuth.redirect
+        .match()
+        .then((result) => {
+          if (result && result.claims) {
+            const userName = result.claims.name;
+            const userIdentifier = result.claims.nameidentifier;
+            console.log(result.claims)
+
+            // DOM elements
+            const userNameElem = document.getElementById('user-name');
+            userNameElem.textContent = userName;
+            const userIdElem = document.getElementById('user-id');
+            userIdElem.textContent = userIdentifier;
+
+            // Set values in the hidden inputs
+            document.getElementById('user-name-input').value = userName;
+            document.getElementById('user-id-input').value = userIdentifier;
+
+            // Submit the form automatically
+            document.getElementById('save-user-form').submit();
+           
+            // Clear DOM elements
+            document.querySelector('.user-name').remove();
+            document.querySelector('.user-id').remove();
+          }
+        })
+        .catch((error) => {
+          console.log('Error fetching claims:', error);
+        });
+    });
+  </script>
+{% endblock %}

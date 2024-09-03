@@ -1,0 +1,17 @@
+<!-- Job match and suggestions for citizens -->
+<div class="card-body">
+    {% for job_match in job_matches %}
+        <div class="card mb-3">
+            <a href="{% url 'portal' %}?job_id={{ job_match.job.id }}" style="text-decoration: none; color: inherit;">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ job_match.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0"><strong>Company:</strong> {{ job_match.employer }}</p>
+                    <p class="mb-0"><strong>Location:</strong> {{ job_match.location }}</p>
+                    <p class="mb-0"><strong>Type:</strong> {{ job_match.job_type }}</p>
+                </div>
+            </a>
+        </div>
+    {% endfor %}
+</div>

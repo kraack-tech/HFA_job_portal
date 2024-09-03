@@ -1,0 +1,64 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+
+<!-- Notifications  -->
+<!-- References: 
+    https://www.advantch.com/blog/how-to-set-up-user-notifications-for-your-django-app-part-1/ & https://www.advantch.com/blog/how-to-set-up-user-notifications-for-your-django-app-part-2/
+    Andrew Pulley, StackOverflow, 04/12/2018, https://stackoverflow.com/questions/51959388/django-2-0-notifications-how-to-overwrite-the-default-list-html-page-for-django
+    Advanced Web Development[CM3035], Kris Kraack(self), "eLearn", "Build an eLearning application[002]", 10/03/2024, https://www.coursera.org/learn/uol-cm3035-advanced-web-development/assignment-submission/AUtna/build-an-elearning-application-002
+-->
+{% block content %}
+    <div class="container">
+        <h1 class="mt-5 mb-4">Notifications</h1>
+        <div class="row justify-content-between">
+            <div class="col-auto">
+                <form action="{% url 'notification_clear' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning mb-3">Clear All</button>
+                </form>
+            </div>
+        </div>
+
+    <!-- List notifications -->
+    <ul class="list-group">
+        <div>
+            <div>
+                Notifications: {{ notifications_count }}
+            </div>
+            <!-- Iterate and display all unread notifications  -->
+            <li class="list-group-item">
+                {% if notifications_count > 0 %}
+                {% for notification in notifications %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Add additional notificaiton meta data (e.g, url) it is a custom notification of CutomNotification database model -->
+                    {% if notification.custom_notification %}
+                        {% with notification.custom_notification.url as url %}
+                            {% if url.url %}
+                                <a href="{{ url.url }}">{{ notification.verb }}</a>
+                            {% else %}
+                                {% with notification.custom_notification.extra as extra %}
+                                    <span>{{ extra.user }} {{ notification.verb }} 
+                                        <a href="{% url 'profile_data' notification.action_object.id %}" class="mx-0">{{ notification.action_object.username }}</a>
+                                        for the job "<strong>{{ extra.job_title }}</strong>" at <strong>{{ extra.company_name }}</strong>
+                                    </span>
+                                {% endwith %}
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        {{ notification.verb }} {{ notification.target }}
+                    {% endif %}
+                    
+                    <form action="{% url 'notification_delete' notification.id %}" method="post" class="d-inline mb-1">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            {% endfor %}
+                {% else %}
+                    <h3 class="mt-5 mb-4">You have no new notifications.</h3>
+                    <br>
+                {% endif %}
+            </li>    
+        </div>
+    </ul>
+{% endblock %}

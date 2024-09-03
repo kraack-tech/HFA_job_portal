@@ -1,0 +1,21 @@
+{% extends "./template_layout.html" %}
+
+<!-- Personal information -->
+{% block content %}
+<div class="container-fluid dash">
+    <div class="row justify-content-center">
+        <div class="col-md-7 m-4 mt-2 ">
+            <div class="card mb-3 mt-2 align-items-center">
+                <div class="card-body ">
+                  <h2>Personal Information</h2>
+                  <p>First Name: {{ user_profile.first_name }}</p>
+                  <p>Last Name: {{ user_profile.last_name }}</p>
+                  <p>Email: {{ user_profile.email }}</p>
+                  <p>Phone: {{ user_profile.phone }}</p>
+                  <p>Address: {{ user_profile.address }}, {{ user_profile.postcode }} {{ user_profile.city }}</p>
+                  <br>
+                  <h4>Please notify assigned contact person if information is out of date</h4>
+                </div>
+            </div>
+        </div>
+{% endblock %}

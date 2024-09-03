@@ -1,0 +1,139 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+<div class="container mt-4 mb-4">
+    <div class="row">
+        <!-- Left sidebar messages -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action active" id="inbox-link">Inbox</a>
+                <a href="#" class="list-group-item list-group-item-action" id="sent-link">Sent</a>
+                <a href="#" class="list-group-item list-group-item-action">Drafts</a>
+                <a href="{% url 'compose_message' %}" class="list-group-item list-group-item-action">Compose</a>
+            </div>
+        </div>
+        <!-- Selected messages  -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    <div id="inbox-section">
+                        <div id="message-list">
+                            {% for message in messages %}
+                            <div class="card mb-2 message-row" data-id="{{ message.id }}" style="cursor:pointer;">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <strong>{{ message.sender.username }}</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>{{ message.subject }}</strong> - {{ message.body|truncatewords:10 }}
+                                        </div>
+                                        <div class="col-md-4 text-right">
+                                            <small>{{ message.timestamp|date:"M d, Y H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="alert alert-info" role="alert">
+                                No messages in your inbox.
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div id="sent-section" style="display: none;">
+                        <div id="sent-message-list">
+                            {% for message in messages_sent %}
+                            <div class="card mb-2 message-row" data-id="{{ message.id }}" style="cursor:pointer;">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <strong>{{ message.recipient.username }}</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>{{ message.subject }}</strong> - {{ message.body|truncatewords:10 }}
+                                        </div>
+                                        <div class="col-md-4 text-right">
+                                            <small>{{ message.timestamp|date:"M d, Y H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="alert alert-info" role="alert">
+                                No sent messages.
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div id="message-detail" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Open message script -->
+<!-- References:
+    https://stackoverflow.com/questions/51634664/looping-through-cells-of-table-and-using-foreach-onclick-javascript-jquery
+   https://api.jquery.com/event.preventDefault/
+   https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll 
+ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Elements
+        const inboxLink = document.getElementById('inbox-link');
+        const sentLink = document.getElementById('sent-link');
+        const inboxSection = document.getElementById('inbox-section');
+        const sentSection = document.getElementById('sent-section');
+
+        // Eventlistener for inbox click: Displays all inbox messages on right container
+        inboxLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            inboxSection.style.display = 'block';
+            sentSection.style.display = 'none';
+            inboxLink.classList.add('active');
+            sentLink.classList.remove('active');
+        });
+        
+        // Eventlistener for sent click: Displays all sent messages on right container
+        sentLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            inboxSection.style.display = 'none';
+            sentSection.style.display = 'block';
+            inboxLink.classList.remove('active');
+            sentLink.classList.add('active');
+        });
+
+        inboxLink.classList.add('active');
+        const messageRows = document.querySelectorAll('.message-row');
+
+        // Eventlistener message clicks: Fetch clicked message and display in right container
+        messageRows.forEach(row => {
+            row.addEventListener('click', function () {
+                const messageId = row.getAttribute('data-id'); // Get message ID
+                // Fetch url with message ID
+                fetch(`/message/${messageId}/`)
+                // Message does not exist
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                 // Message fetch success
+                .then(html => {
+                    document.getElementById('inbox-section').style.display = 'none';
+                    document.getElementById('sent-section').style.display = 'none';
+                    document.getElementById('message-detail').style.display = 'block';
+                    document.getElementById('message-detail').innerHTML = html;
+                })
+                .catch(error => console.error('Error fetching message:', error));
+            });
+        });
+    });
+</script>
+{% endblock %}

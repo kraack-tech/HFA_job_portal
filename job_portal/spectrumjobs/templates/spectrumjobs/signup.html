@@ -1,0 +1,26 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+
+<!-- Register a new user -->
+{% block content %}
+    <div class="container-fluid dash">
+        <div class="row justify-content-center">
+            <div class="col-md-8 m-4 mt-2 ">
+                <div class="card mb-3 mt-2 align-items-center">
+                    <div class="card-body ">
+                        <h4 class="card-title">User Registration</h4>
+                        <!-- New user creation form -->
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ signup_form.as_p }}
+                            {{ user_info.as_p }}
+                            <button type="submit">Register</button>
+                        </form>
+                        <br><br>
+                        <a href="{% url 'index' %}">Return</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

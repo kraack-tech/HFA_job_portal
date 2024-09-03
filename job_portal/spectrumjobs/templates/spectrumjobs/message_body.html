@@ -1,0 +1,8 @@
+<!-- Message body -->
+<div class="m-4">
+    <h2>{{ message.subject }}</h2>
+    <p><strong>From:</strong> {{ message.sender.username }}</p>
+    <p><strong>Sent:</strong> {{ message.timestamp|date:"M d, Y H:i" }}</p>
+    <p>{{ message.body }}</p>
+    <a href="{% url 'inbox' %}" class="btn btn-secondary">Back to Inbox</a>
+</div>

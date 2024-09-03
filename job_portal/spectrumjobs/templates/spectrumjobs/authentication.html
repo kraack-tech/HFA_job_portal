@@ -1,0 +1,75 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+{% load socialaccount %}
+{% load static %}
+
+{% block content %}
+    <div class="container mt-5 mb-5" >
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 class="card-title text-center mb-5">SpectrumJobs</h1>
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-center mb-4">Login or create an account</h4>
+                        <!-- Google login option - Image reference: https://www.pngegg.com/en/png-naytr -->
+                        <div class="border rounded-lg p-3 mb-3 login-hover" id="google-login" style="margin-left: 2%; margin-right: 2%;">
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/google.png' %}" alt="Google Logo" class="img-fluid mr-3" style="max-width: 50px;">
+                                    <p class="mb-0">Login with Google</p>
+                                </div>
+                        </div>
+                        <!-- Facebook login option - Image reference:  https://www.pngegg.com/en/png-pajvq/download -->
+                        <div class="border rounded-lg p-3 mb-3 login-hover" style="margin-left: 2%; margin-right: 2%;">
+                            <a href="{% url 'signin' %}" class="text-decoration-none text-dark">
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/facebook.png' %}" alt="Facebook Logo" class="img-fluid mr-3" style="max-width: 50px;">
+                                    <p class="mb-0">Login with Facebook</p>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- MitID login option - Image reference:  https://www.pngegg.com/en/png-pajvq/download -->
+                        <div class="border rounded-lg p-3 mb-3 login-hover" style="margin-left: 2%; margin-right: 2%;">
+                            <a href="{% url 'mitid_login' %}" class="text-decoration-none text-dark">
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'images/mitID.png' %}" alt="GitHub Logo" class="img-fluid mr-3" style="max-width: 60px;">
+                                    <p class="mb-0">Login with MitID</p>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Manual Login Option -->
+                        <div class="border rounded-lg p-3 mb-3" style="margin-left: 2%; margin-right: 2%;">
+                            <form action="{% url 'signin' %}" method="get">
+                                <div class="form-group">
+                                    <label for="user_name">Manual login
+                                    </label>
+                                    <input type="text" class="form-control" id="user_name" name="user_name" placeholder="Enter Your Username..." required>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+                                </div>
+                            </form>
+                        </div>
+                            <!-- Divider -->
+                            <hr class="my-2">
+                            <!-- Additional account options -->
+                            <div class="">
+                                <a href="{% url 'signin' %}" class="text-decoration-none text-color-hover mr-3">Forgot Password?</a> </br>
+                                <a href="{% url 'signup' %}" class="text-decoration-none text-color-hover">Register New Account</a>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <!-- Social account (Google) login form -->
+    <form id="google-login-form" action="{% provider_login_url 'google' method='oauth2' %}" method="post" style="display:none;">
+        {% csrf_token %}
+    </form>
+    <!-- Social account (Google) script -->
+    <script>
+        document.getElementById('google-login').addEventListener('click', function() {
+            document.getElementById('google-login-form').submit();
+        });
+    </script>
+{% endblock %}
