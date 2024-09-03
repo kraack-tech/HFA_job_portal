@@ -1,0 +1,72 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+{% load static %}
+
+<!-- Signin page -->
+{% block content %}
+    <div class="container-fluid dash">
+        <div class="row justify-content-center">
+            <div class="col-md-8 m-4 mt-2 ">
+                <div class="card mb-3 mt-2 align-items-center">
+                    <div class="card-body ">
+                        <h4 class="card-title">Login</h4>
+                        <!-- Username input and check -->
+                        <form method="post" id="loginForm">
+                            {% csrf_token %}
+                            <div id="username-field">
+                                {{ form.username.label_tag }}
+                                {{ form.username }}
+                                <button type="button" class="btn btn-primary btn-block" id="checkUserButton">Next</button>
+                            </div>
+                            <!-- Password input -->
+                            <div id="password-field" style="display: none;">
+                                {{ form.password.label_tag }}
+                                {{ form.password }}
+                                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                            </div>
+                            <!-- Ask for OTP if 2FA is enabled by the user -->
+                            {% if enable_2fa %}
+                                <label for="otp">Enter OTP:</label>
+                                <input type="text" id="otp" name="otp" required>
+                            {% endif %}
+                        </form>
+                        <br><br>
+                        <a href="{% url 'index' %}">Return</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--  Check user script: Danish user are redirected to MitID login. Others are asked to manually provide their credentials -->
+    <script>
+        document.getElementById('checkUserButton').addEventListener('click', function() {
+            // Username provided and csrf token
+            const username = document.getElementById('id_username').value;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            // Fetch is_dk_user status from the signin view. redirect to MitID login if true, otherwise ask for credentials
+            fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ username: username, action: 'check_user' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Danish user: Require MitID authentication
+                if (data.is_dk_user) {
+                    window.location.href = `/mitid-login`;
+                } else {
+                    // Non-danish user: Normal login
+                    document.getElementById('username-field').style.display = 'none';
+                    document.getElementById('password-field').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+{% endblock %}

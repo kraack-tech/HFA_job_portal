@@ -1,0 +1,28 @@
+{% extends "./template_layout.html" %}
+
+<!-- Two-factor authentication settings -->
+{% block content %}
+<div class="container-fluid dash">
+    <div class="row justify-content-center">
+        <div class="col-md-3 m-4 mt-2 ">
+            <div class="card mb-3 mt-2 align-items-center">
+                <div class="card-body ">
+                    <h4 class="card-title">Authentication Settings</h4>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'enable_2fa' %}">Enable 2FA</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'disable_2fa' %}">Disable 2FA</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'setup_otp' %}">Setup 2FA</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'update_pw' %}">Update Password</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+{% endblock %}

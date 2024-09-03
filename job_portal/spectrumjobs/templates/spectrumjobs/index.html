@@ -1,0 +1,175 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+{% load socialaccount %}
+{% load static %}
+
+<!-- Calendar styling: Must be loaded before HTML-->
+<style>
+    #calendar {
+        max-width: 80%;
+        margin: 40px auto;
+    }
+</style>
+
+{% block content %}
+    <div class="container-fluid dash mt-4">
+        <div class="row justify-content-center">
+            <!-- Inbox -->
+            <div class="col-md-2">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Inbox Messages</h5>
+                        <ul class="list-group">
+                            {% for message in messages %}
+                            <form action="{% url 'inbox' %}" method="get">
+                                <input type="hidden" name="message_id" value="{{ message.pk }}">
+                                <li class="list-group-item">
+                                    <button type="submit" class="btn btn-link" style="text-align: left;">{{ message.subject }}</button>
+                                </li>
+                            </form>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- FullCalendar widget -->
+             <!-- Reference: https://fullcalendar.io/docs -->
+            <div class="col-md-6">
+                <div class="card mb-3 ">
+                    <div class="card-body m-1">
+                        <div class="row">
+                            <div id="calendar"></div>
+                                <!-- Calendar modal form -->
+                                <!-- References: 
+                                    https://getbootstrap.com/docs/4.0/components/modal/ 
+                                    https://stackoverflow.com/questions/61653825/bootstrap-modal-dialog-tabindex-1-not-accessable-form-elements
+                                -->
+                                <div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="eventModalLabel">Appointment</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="eventForm">
+                                                    {% csrf_token %}
+                                                    <div class="form-group">
+                                                        <label for="id_liaison">Contact</label>
+                                                        <input type="text" class="form-control" id="id_liaison" name="liaison" readonly>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="id_title">Title</label>
+                                                        <input type="text" class="form-control" id="id_title" name="title">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="id_description">Description</label>
+                                                        <textarea class="form-control" id="id_description" name="description"></textarea>
+                                                    </div>
+                                                    <input type="hidden" id="id_event_id">
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-danger" id="deleteEvent" style="display: none;">Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggestions -->
+                <div class="col-md-3 ">
+                    <div class="card mb-3 ">
+                        <div class="mt-1 ">
+                            {% if user_type == "citizen" %}
+                                <h3 style="text-align:center">Job Suggestions</h3>
+                                {% include 'spectrumjobs/match_citizens.html' %}
+                            {% else %}
+                                {% if user_type == "employer" %}
+                                    <h3>Candidate Suggestions</h3>
+                                    {% include 'spectrumjobs/match_employer.html' %}                    
+                                {% endif %} 
+                            {% endif %} 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FullCalendar scripts -->
+    <!-- Reference: https://fullcalendar.io/docs  -->
+    <script>
+        $(document).ready(function() {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay,list' 
+                },
+                editable: false, // Not editable for citizens
+                events: function(start, end, timezone, callback) {
+                    $.ajax({
+                        url: '/api/calendar/',
+                        dataType: 'json',
+                        success: function(event_list) {
+                            callback(event_list);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error fetching appointment:', error);
+                        }
+                    });
+                },
+                selectable: true,
+                selectHelper: true,
+                select: function(start, end) {
+                    $('#eventForm')[0].reset();
+                    $('#id_event_id').val('');
+                    $('#id_start_time').val(start.format('YYYY-MM-DDTHH:mm'));
+                    $('#id_end_time').val(end.format('YYYY-MM-DDTHH:mm'));
+                    $('#deleteEvent').hide();
+                    $('#eventModal').modal('show');
+                },
+                // Handle event clicks: Not editable by citizen
+                eventClick: function(event) {
+                    $('#id_event_id').val(event.id).prop('disabled', true);  // Appointment id field
+                    $('#id_title').val(event.title).prop('disabled', true); // Appointment title field
+                    $('#id_description').val(event.description).prop('disabled', true); // Appointment description field
+                    $('#id_start_time').val(moment(event.start).format('YYYY-MM-DDTHH:mm')).prop('disabled', true); // Start time field: 
+                    $('#id_end_time').val(moment(event.end).format('YYYY-MM-DDTHH:mm')).prop('disabled', true); // End time field
+                    $('#id_user').val(event.user);  // Citizen from dropdown
+                    $('#id_liaison').val(event.liaison).prop('disabled', true); // Liaison field
+                    $('#deleteEvent').show(); // Show delete button
+                    $('#eventModal').modal('show'); // Show model
+                },
+               
+            });
+
+            // Delete Event button click handler
+            // Reference: https://github.com/fullcalendar/fullcalendar/issues/5011
+            $('#deleteEvent').on('click', function() {
+                const eventId = $('#id_event_id').val();
+                $.ajax({
+                    url: `/api/calendar/delete/${eventId}/`,
+                    method: 'POST',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        $('#calendar').fullCalendar('refetchEvents');
+                        $('#eventModal').modal('hide');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

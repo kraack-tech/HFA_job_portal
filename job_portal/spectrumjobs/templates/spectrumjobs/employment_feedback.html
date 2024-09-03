@@ -1,0 +1,52 @@
+{% extends "./template_layout.html" %}
+
+<style>
+/* feedback form control */
+.form-control {
+    margin-top: 10px; 
+    width: 100%;
+}
+
+</style>
+
+<!-- Monthly fedback form for citizen and employer -->
+{% block content %}
+    <div class="container">
+        <div style="text-align:center" class="mt-4 mb-4">
+            <h2>{% if user_type == 'employer' %}Employer Feedback Form{% else %}Citizen Feedback Form{% endif %}</h2>
+        </div>
+        <div class="form-container">
+            <form method="POST">
+                {% csrf_token %}
+                {% if user_type == 'employer' %}
+                    <div class="form-group mt-4 mb-4">
+                        <label for="id_citizen">Select Citizen</label>
+                        {{ form.citizen }}
+                    </div>
+                {% else %}
+                    <div style="text-align:center" class="mt-4 mb-4">
+                        <p><b>Employer:</b> {{ employer }}</p>
+                    </div>
+                {% endif %}
+                {% for field in form %}
+                    {% if field.name != 'feedback' and field.name != 'citizen' %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <div class="rating">
+                                {% for choice in field.field.choices %}
+                                    <input type="radio" id="{{ field.name }}_{{ choice.0 }}" name="{{ field.name }}" value="{{ choice.0 }}">
+                                    <label for="{{ field.name }}_{{ choice.0 }}" class="dot"></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                <div class="form-group">
+                    <label for="feedback">Additional Feedback</label>
+                    <textarea id="feedback" name="feedback" placeholder="Enter your feedback here..." class="form-control">{{ form.feedback.value|default:'' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends "./template_layout.html" %}
+{% load bootstrap4 %}
+{% load static %}
+
+{% block content %}
+    {% if user_type == "employer" %}
+        <!-- Job post button for employers -->
+        <div class="mt-4">
+            <div class="row justify-content-center">
+                <div class="col-md-6 text-center">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#jobPostModal">
+                        <h4>Post a Job</h4>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+
+        <!-- Modal for Job Posting Form -->
+            <!-- Reference: https://getbootstrap.com/docs/4.6/components/modal/ -->
+        <div class="modal fade" id="jobPostModal" tabindex="-1" role="dialog" aria-labelledby="jobPostModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="jobPostModalLabel">Post a Job</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{% url 'post_job' %}">
+                            {% csrf_token %}
+                            {% bootstrap_form form layout='horizontal' %}
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Job portal -->
+    <div class="container mt-5 mb-6">
+        <!-- Job filter queries -->
+        <form method="GET" action="{% url 'portal' %}" class="mb-4">
+            <div class="row">
+                <!-- Title and description -->
+                <div class="col-md-10 offset-md-1">
+                    <div class="input-group ">
+                        <input type="text" name="title_description" class="form-control " placeholder="Search for jobs by title or description" value="{{ request.GET.title_description }}">
+                        <input type="text" name="location" class="form-control" placeholder="Search for location" value="{{ request.GET.location }}">
+                        <div class="input-group-append mb-2">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                            <a href="{% url 'portal' %}" class="btn btn-secondary">Reset</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Dropdown menus -->
+            <div class="row offset-md-2">
+                <!-- Job field filter query -->
+                <div class="col-md-3 mb-3 " >
+                    <select name="job_field" class="form-control bg-secondary text-white">
+                        <option value="">Field</option>
+                        {% for field in job_fields %}
+                            <option value="{{ field }}" {% if request.GET.job_field == field %}selected{% endif %}>{{ field }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Job type filter query -->
+                <div class="col-md-3 mb-3">
+                    <select name="job_type" class="form-control bg-secondary text-white">
+                        <option value="">Job Type</option>
+                        {% for type in job_types %}
+                            <option value="{{ type }}" {% if request.GET.job_type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Job min. required educational level filter query -->
+                <div class="col-md-3 mb-3">
+                    <select name="education_level" class="form-control bg-secondary text-white">
+                        <option value="">Education Level</option>
+                        {% for level in education_levels %}
+                            <option value="{{ level }}" {% if request.GET.education_level == level %}selected{% endif %}>{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <!-- Job sorting -->
+            <select name="sort_by" class="form-select">
+                <option value="">Sort By</option>
+                <option value="best_match">Best Match</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+            </select>
+        </form>
+
+        <!-- Job posts -->        
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6" id="job-postings-container">
+                        {% if jobs|length > 0 %}
+                            {% if user_type == "employer" %}
+                                Active job posts by employer: <b>{{ user_profile}}</b>
+                            {% endif %}
+                            {% for job in jobs %}
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ job.title }}</h5>
+                                        <p class="card-text">{{ job.company_name }}</p>
+                                        <p class="card-text">Location: {{ job.location }}</p>
+                                        <p class="card-text">Type: {{ job.job_type }}</p>
+                                        <p class="card-text">Field: {{ job.job_field }}</p>
+                                        <p class="card-text">Posted: {{ job.posted_date }}</p>
+                                        <p class="card-text">Education: {{ job.education }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <button class="btn btn-primary view-details mt-1" data-job-id="{{ job.id }}">View Details</button>
+                                            {% if user_type == 'employer' or user_type == 'liaison' %}
+                                                <form action="{% url 'delete_job' job.id %}" method="post" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger mt-1">Delete</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            No job posts
+                        {% endif %}
+                    </div>
+                    <!-- Selected job post details -->
+                    <div class="col-md-6" id="job-details-container">
+                        <div class="card" id="job-details">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Details</h5>
+                                <p class="card-text">Click on a job title to view details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job post scripts -->
+    <!-- References:
+      https://learn.jquery.com/
+      https://learn.jquery.com/using-jquery-core/document-ready/
+      https://www.shecodes.io/athena/27074-understanding-window-location-search-and-urlsearchparams-in-javascript
+      https://api.jquery.com/event.preventDefault/
+      https://stackoverflow.com/questions/28378705/run-ajax-request-on-document-ready-jquery
+    -->
+    <script>
+        // Function for fetching job details and updating the container
+        $(document).ready(function() {
+            function fetchJobDetails(jobId) {
+                $.ajax({
+                    url: '/job/' + jobId + '/details/',
+                    method: 'GET',
+                    success: function(response) {
+                        // Update container with fetches job details
+                        $('#job-details-container').html(response);
+
+                        // Apply button for citizens
+                        const user_type = "{{ user_type }}";
+                        if (user_type === "citizen") {
+                            var applyForm = '<form id="apply-job-form" method="post" action="/job/' + jobId + '/apply/">{% csrf_token %}<button type="submit" class="btn btn-primary mt-3">Apply</button></form>';
+                            $('#job-details-container .card-body').append(applyForm);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            }
+
+            // Checks for job id parameter in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const jobId = urlParams.get('job_id');
+            if (jobId) {
+                fetchJobDetails(jobId);
+            }
+
+            // Handle clicks on job post: i.e. fetch and display the job in the container
+            $('.view-details').on('click', function() {
+                var jobId = $(this).data('job-id');
+                fetchJobDetails(jobId);
+            });
+
+            // Apply button submission handling
+            $('#job-details-container').on('submit', '#apply-job-form', function(event) {
+                event.preventDefault();
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        console.log('Application successful:', response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends "./template_layout.html" %}
+
+<!-- Citizen and employer employment profile data: Used for updating sensory profile/training, assigning role or contact person, and updated citizen/employer work profiles -->
+{% block content %}
+    <br>
+    <div class="container">
+        <div class="row justify-content-between">
+            {% if visited_app_user_user_type == "employer" %}
+                <div class="col-md-4 mb-2" >
+                    {% else %}
+                    <div class="col-md-3 mb-2" >
+            {% endif %}
+            <!-- User information -->
+            <div class="card border-secondary rounded">
+                <div class="card-header text-dark-50">
+                    <h4>User: {{ visited_user.username }}</h4>
+                    <!-- Assign role for new users -->
+                    {% if visited_app_user_user_type == "none" %}
+                        <form id="user-type-form" method="post">
+                            {% csrf_token %}
+                            <label for="user_type">Select user type:</label>
+                            <select class="form-control bg-secondary text-white" name="user_type" id="user_type">
+                                {% for type in user_type %}
+                                <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary mt-1" type="submit" name="user-type-form">Add</button>
+                        </form>
+                    {% endif %}
+                    <p>user_type: {{ visited_app_user_user_type }}</p>
+                </div>
+                <div class="card-body rounded bg-light d-flex flex-column"style="min-height: 335px; max-height: 500px; overflow: auto;">
+                    <p>Name: {{ visited_app_user.first_name }} {{ visited_app_user.last_name }}</p>
+                    <p>Email: {{ visited_app_user.email }}</p>
+                    <p>Phone: {{ visited_app_user.phone }}</p>
+                    <p>Address: {{ visited_app_user.address }}, {{ visited_app_user.postcode }} {{ visited_app_user.city }}</p>
+                    <!-- For citizens -->
+                    {% if visited_app_user_user_type == "citizen" %}
+                        <p>Contact Person: {{ contact_person }}</p>
+                        <p class="m-0"><b>Recommendations:</b></p>
+                        <p class="m-0">Job Type: {{ job_type_recommendation }}</p>
+                        <p class="m-0">Support Level: {{ support_level }}%</p>
+                        <!-- Assign contact person for new citizens -->
+                        <div class="mt-auto">
+                            {% if assigned != True %}
+                                <form id="contact-person-form" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" name="contact_form" class="btn btn-primary">Assign as Contact</button>
+                                </form>                
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <!-- For employers -->
+                    {% if visited_app_user_user_type == "employer" %}
+                        <p class="m-0"><b>Recommendations:</b></p>
+                        <p class="m-0 "style="display: inline;"><b>Training:</b>
+                        {% if training_recommendations %}
+                            {% for recommendation in training_recommendations %}
+                                {{ recommendation }}{% if not forloop.last %},  {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            None
+                        {% endif %}
+                            <p style="display: inline;"><b>Support:</b>
+                                {{support_recommendation}}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- For citizens -->
+        {% if visited_app_user_user_type == "citizen" %}
+            <!-- Sensory profile -->
+            <div class="col-md-4 mb-2 ">
+                <div class="card border-secondary rounded ">
+                    <div class="card-header text-dark-50">
+                        <h4>Sensory Profile</h4>
+                    </div>
+                    <div class="card-body rounded bg-light d-flex flex-column" style="min-height: 425px; max-height: 500px; overflow: auto;">
+                        {% if senseProfile %}
+                            <ul class="list-group" id="sensory-profile-list">
+                                <li class="list-group-item">Auditory: {{ senseProfile.auditory }}</li>
+                                <li class="list-group-item">Visual: {{ senseProfile.visual }}</li>
+                                <li class="list-group-item">Smell: {{ senseProfile.smell }}</li>
+                                <li class="list-group-item">Tactile: {{ senseProfile.tactile }}</li>
+                                <li class="list-group-item">Movement: {{ senseProfile.movement }}</li>
+                            </ul>
+                            <button id="edit-sensory-profile" class="btn btn-primary mt-auto" onclick="toggleForm('sensory-profile')">Update Sensory Profile</button>
+                            <form id="sensory-profile-form" method="post" action="{% url 'profile_data' user_id=visited_user.id %}" style="display: none;">
+                                {% csrf_token %}
+                                {{ sensory_form.as_p }}
+                                <button type="submit" name="sensory_profile" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="toggleForm('sensory-profile')">Cancel</button>
+                            </form>
+                        {% else %}
+                            <p>No Sensory Profile Found</p>
+                            <form method="post" action="">
+                                {% csrf_token %}
+                                {{ sensory_form.as_p }}
+                                <button type="submit" name="sensory_profile" class="btn btn-primary">Add Sensory Profile</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+                        
+            <!-- Citizen employment profile -->
+            <div class="col-md-5 mb-4 ">
+                <div class="card border-secondary rounded ">
+                    <div class="card-header text-dark-50">
+                        <h4>Citizen Profile</h4>
+                    </div>
+                    <div class="card-body rounded bg-light d-flex flex-column" style="min-height: 425px; max-height: 500px; overflow: auto;">
+                        {% if citizen_profile %}
+                            <ul class="list-group" id="citizen-profile-list">
+                                <li class="list-group-item">Field: {{ citizen_profile.job_field }}</li>
+                                <li class="list-group-item">Job Type: {{ citizen_profile.job_type }}</li>
+                                <li class="list-group-item">Grants: {{ citizen_profile.support_grants }}</li>
+                                <li class="list-group-item">Education: {{ citizen_profile.education }}</li>
+                                <li class="list-group-item">Employed: {{ citizen_profile.employed }}</li>
+                                <li class="list-group-item">Employed: {{ citizen_profile.employer }}</li>
+                            </ul>
+                            <button id="edit-citizen-profile" class="btn btn-primary mt-auto" onclick="toggleForm('citizen-profile')">Update Citizen Profile</button>
+                            <form id="citizen-profile-form" method="post" action="{% url 'profile_data' user_id=visited_user.id %}" style="display: none;">
+                                {% csrf_token %}
+                                {{ citizen_form.as_p }}
+                                <button type="submit" name="citizen_profile" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="toggleForm('citizen-profile')">Cancel</button>
+                            </form>
+                        {% else %}
+                            <p>No Citizen Profile Found</p>
+                            <form id="add-citizen-profile-form" method="post" action="{% url 'profile_data' user_id=visited_user.id %}">
+                                {% csrf_token %}
+                                {{ citizen_form.as_p }}
+                                <button type="submit" name="citizen_profile" class="btn btn-primary mt-auto">Add Citizen Profile</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citizen job match suggestions: Include full statistics on which the matches are based on -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-secondary rounded ">
+                    <div class="card-header text-dark-50">
+                        <h4>Best Job Suggestions for Citizen</h4>
+                    </div>
+                    <div class="card-body rounded bg-light " style=" overflow: auto;">
+                        {% include 'spectrumjobs/match_liaisons.html' %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+
+        <!-- For employers  -->
+        {% if visited_app_user_user_type == "employer" %}
+            <div class="col-md-4 mb-4">
+                <!-- Sensory training skills by employer  -->
+                <div class="card border-secondary rounded">
+                    <div class="card-header text-dark-50">
+                        <h4>Employer Training</h4>
+                    </div>
+                    <div class="card-body rounded bg-light d-flex flex-column" style="min-height: 380px; max-height: 500px; overflow: auto;">
+                        {% if senseProfile %}
+                            <ul class="list-group" id="sensory-profile-list">
+                                <li class="list-group-item">Auditory: {{ senseProfile.auditory }}</li>
+                                <li class="list-group-item">Visual: {{ senseProfile.visual }}</li>
+                                <li class="list-group-item">Smell: {{ senseProfile.smell }}</li>
+                                <li class="list-group-item">Tactile: {{ senseProfile.tactile }}</li>
+                                <li class="list-group-item">Movement: {{ senseProfile.movement }}</li>
+                            </ul>
+                            <button id="edit-sensory-profile" class="btn btn-primary mt-auto" onclick="toggleForm('sensory-profile')">Update Sensory Training</button>
+                            <form id="sensory-profile-form" method="post" action="{% url 'profile_data' user_id=visited_user.id %}" style="display: none;">
+                                {% csrf_token %}
+                                {{ sensory_form.as_p }}
+                                <button type="submit" name="sensory_profile" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="toggleForm('sensory-profile')">Cancel</button>
+                            </form>
+                        {% else %}
+                            <p>No employer training Profile Found</p>
+                            <form method="post" action="">
+                                {% csrf_token %}
+                                {{ sensory_form.as_p }}
+                                <button type="submit" name="sensory_profile" class="btn btn-primary">Add Sensory Profile</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employer work-place facilities and supportive services -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-secondary rounded">
+                    <div class="card-header text-dark-50">
+                        <h4>Employer Facilities</h4>
+                    </div>
+                    <div class="card-body rounded bg-light d-flex flex-column" style="min-height: 380px; max-height: 500px; overflow: auto;">
+                        {% if employer_profile %}
+                            <ul class="list-group" id="employer-profile-list">
+                                <li class="list-group-item">Field: {{ employer_profile.field }}</li>
+                                <li class="list-group-item">Sound Level: {{ employer_profile.sound_level }}</li>
+                                <li class="list-group-item">Team Count: {{ employer_profile.team_count }}</li>
+                                <li class="list-group-item">Work-plan: {{ employer_profile.layout }}</li>
+                                <li class="list-group-item">Support Services: {{ employer_profile.support_service }}</li>
+                            </ul>
+                            <button id="edit-employer-profile" class="btn btn-primary mt-auto" onclick="toggleForm('employer-profile')">Update Employer Facility</button>
+                            <form id="employer-profile-form" method="post" action="{% url 'profile_data' user_id=visited_user.id %}" style="display: none;">
+                                {% csrf_token %}
+                                {{ employer_form.as_p }}
+                                <button type="submit" name="employer_profile" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="toggleForm('employer-profile')">Cancel</button>
+                            </form>
+                        {% else %}
+                            <p>No Employer Facilities Data Found</p>
+                            <form id="add-employer-profile-form" method="post" action="{% url 'profile_data' user_id=visited_user.id %}">
+                                {% csrf_token %}
+                                {{ employer_form.as_p }}
+                                <button type="submit" name="employer_profile" class="btn btn-primary">Add Employer Facility Data</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active job posts by the employer -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-secondary rounded ">
+                    <div class="card-header text-dark-50">
+                        <h4>Current Job Openings</h4>
+                    </div>
+                    <div class="card-body rounded bg-light " style=" overflow: auto;">
+                        <div class="card-body">
+                            <div class="row">
+                                {% for job in job_arr %}
+                                    <div class="col-md-6">
+                                        <a href="{% url 'portal' %}?job_id={{ job.job_id }}" style="text-decoration: none; color: inherit;">
+                                        <div class="card mb-3">
+                                            <div class="card-header m-0">
+                                                <h4>{{ job.job_title }}</h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="mb-0">Type: {{ job.job_type }}</p>
+                                                <p class="mb-0">Field: {{ job.job_field }}</p>
+                                                <p class="mb-0">Location: {{ job.job_location }}</p>
+                                                <p class="mb-0">Education level: {{ job.job_education }}</p>
+                                                <p class="mb-0">Created: {{ job.job_date }}</p>
+                                            </div>
+                                        </div>
+                                        </a>
+                                    </div>
+                                    {% if forloop.counter|divisibleby:2 %}
+                                        </div><div class="row">
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Script for hiden the update buttons when form is open -->
+    <script>
+        function toggleForm(section) {
+            const list = document.getElementById(section + '-list');
+            const form = document.getElementById(section + '-form');
+            const button = document.getElementById('edit-' + section);
+        
+            if (list.style.display === 'none') {
+                list.style.display = 'block';
+                form.style.display = 'none';
+                button.style.display = 'block'; // Show the update button
+            } else {
+                list.style.display = 'none';
+                form.style.display = 'block';
+                button.style.display = 'none'; // Hide the update button
+            }
+        }
+    </script>
+{% endblock %}

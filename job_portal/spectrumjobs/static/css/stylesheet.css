@@ -1,0 +1,172 @@
+/* ==================================================== */
+/*                Overall styling and font              */
+/* ==================================================== */
+body {
+    background: linear-gradient(to left, white, rgb(208, 223, 241) );
+    font-family: 'Roboto';font-size: larger;
+}
+
+
+/* ==================================================== */
+/*          Hover effect on authentication page         */
+/* ==================================================== */
+.login-hover:hover {
+    background-color: #f0f0f0; 
+    cursor: pointer; /*  Cursor to pointer on hover */
+}
+.text-color-hover:hover {
+color: black; /* Text color on hover */
+}
+
+
+/* ==================================================== */
+/*               Employment feedback styling            */
+/* ==================================================== */
+/* Feedback container */
+.form-container {
+    width: 50%; 
+    margin: 0 auto; 
+}
+
+/* Feedback rating */
+.rating {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    width: 100%; 
+}
+
+/* Feedback input */
+input[type="radio"] {
+    display: none; 
+}
+
+/* Feedback dots styling */
+label.dot {
+    display: block;
+    width: 30px; /* Dot width  */
+    height: 30px; /* Dot height  */
+    background-color: #ccc; /* Dot background color before selection */
+    border-radius: 50%; /* Circular */
+    cursor: pointer; /* Ponter cursor */
+    transition: background-color 0.3s;
+}
+input[type="radio"]:checked + label.dot {
+    background-color: #007bff; /* Dot color after selected */
+}
+label.dot:hover {
+    background-color: #0056b3; /* Dot color on hover */
+}
+
+
+/* ==================================================== */
+/*                      Navigation bar                  */
+/* ==================================================== */
+/* Nav bar styling */
+.nav {
+    background: linear-gradient(to bottom right, white, rgb(208, 223, 241)) !important;
+    backdrop-filter: blur(10px); /* Adds a slight blur to the background */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* icon color */
+.icon-color {
+    color: #555353 !important; 
+}
+
+/* Link color */
+.navbar .nav-link {
+    color: rgb(21, 60, 99);  
+}
+
+/* Link color on hover */
+.navbar .nav-link:hover {
+    color: #bbbbbb; 
+}
+
+/* translate */
+.translate-middle-x-custom {
+    transform: translate(-75%, -35%);
+}
+
+
+/* ==================================================== */
+/*                  Calendar Appoinments                */
+/* ==================================================== */
+.fc-event {
+    cursor: pointer; /* Cursor pointer on event hover */
+}
+
+
+/* ==================================================== */
+/*                     Hidden elements                  */
+/* ==================================================== */
+.hidden {
+    display: none; 
+}
+
+
+/* ==================================================== */
+/*                       live-chat                      */
+/* ==================================================== */
+/*  Message */
+.chat-message {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+/* Text */
+.message-text {
+    flex-grow: 1;
+}
+
+/* Time */
+.message-time {
+    flex-shrink: 0;
+    margin-left: 10px;
+    color: gray;
+}
+
+
+/* ==================================================== */
+/*   Citizen feedback and support needs: Bar styling    */
+/* ==================================================== */
+/* Initial bar */
+.progress {
+    background-color: #949494; 
+    border-radius: 5px;
+    height: 30px; 
+    margin-bottom: 15px; 
+    width: 15em; 
+}
+
+/* Progress bar */
+.progress-bar {
+    background-color: #007bff; 
+    color: white; 
+    text-align: center;
+    height: 100%; 
+    transition: width 0.4s ease; 
+}
+
+
+/* ==================================================== */
+/*                   Notifications                      */
+/* ==================================================== */
+.notification-item {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.notification-item a {
+    margin: 0px; 
+}

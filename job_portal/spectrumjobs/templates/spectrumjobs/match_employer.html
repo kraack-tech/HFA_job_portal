@@ -1,0 +1,65 @@
+<!-- Candidate match and suggestions for employers -->
+{% if employer_profile  %}
+    <div class="card-body">
+        <form method="GET" action="{% url 'index' %}">
+            <select name="job_posting" id="job_posting">
+                {% for job_match in job_matches %}
+                    <option value="{{ job_match.job.id }}" {% if job_match.job.id == selected_job_id %} selected {% endif %}>{{ job_match.job.title }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Select</button>
+        </form>
+        <br>
+        <h3>Top Applicants:</h3>
+        <ul class="list-group mb-0">
+            <!-- Get candidate suggestions for job posts -->
+            {% for job_match in job_matches %}
+                {% if job_match.job.id == selected_job_id %}
+                    {% if not job_match.top_matches %}
+                        <!-- No applicants to job -->
+                            <p class="m-1"><b></b>No applicants yet.</p>
+                    {% else %}
+                        {% for match in job_match.top_matches %}
+                            <li class="list-group-item mb-0 d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">
+                                    <a href="{% url 'profile_data' match.citizen_id %}">{{ match.citizen }}</a>: 
+                                    <b>{{ match.overall_match_score }}%</b>
+                                </h4>
+                                <button class="btn btn-primary btn-sm notify-button" data-citizen-id="{{ match.citizen_id }}" data-job-id="{{ job_match.job.id }}">Inquire</button>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!--  Script for selecting the job post -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.notify-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const citizenId = this.getAttribute('data-citizen-id');
+                    const jobId = this.getAttribute('data-job-id');  // Get the job ID
+                    fetch("{% url 'notify_liaison' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({ citizen_id: citizenId, job_id: jobId })  // Send both IDs
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Notification sent successfully!");
+                        } else {
+                            alert("Failed to send notification: " + data.error);
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+{% else %}
+    You need at have evalutions first
+{% endif %}
