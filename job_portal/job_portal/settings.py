@@ -88,8 +88,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Django-allauth: redirects
-LOGIN_REDIRECT_URL = '/success/'
-LOGOUT_REDIRECT_URL = '/logout/' 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/' 
 
 # Django-allauth: site identifier
 #SITE_ID=1 
