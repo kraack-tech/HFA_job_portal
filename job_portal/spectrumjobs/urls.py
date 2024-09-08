@@ -24,6 +24,7 @@ urlpatterns = [
                                    name='update_pw'
                                    ), 
     path('auth_settings/', auth_settings, name='auth_settings'),
+    path('success/', oauth_success, name='success'),
 
     # ============================ #
     #   3RD-PARTY AUTHENTICATION   #

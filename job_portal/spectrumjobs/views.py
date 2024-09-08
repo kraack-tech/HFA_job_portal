@@ -138,7 +138,28 @@ def index(request):
 
     # Count unread notifications for bell icon in navbar
     notifications_count = Notification.objects.filter(recipient=request.user, unread=True).count()
+    
+    # Create user profile for first time social account logins (OAuth 2.0)
+    try:
+        user = User.objects.get(username=request.user)
+        profile =  UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        if user is not None:
+                # Authentication backend
+                user.backend = f'{ModelBackend.__module__}.{ModelBackend.__qualname__}' # Authentication backend to use (settings.py)
 
+                # Create Profile instance
+                UserProfile.objects.create(
+                user=user)
+                profile = UserProfile.objects.get(user=user)
+                print("profile created", profile)
+                # Login and redirect to index
+                login(request, user)
+                return redirect('index') 
+        else:
+            # Handle user creation errors
+            return HttpResponse('Failed to authenticate user.')
+    
     # Dashboard for citizens
     if request.user.userprofile.user_type == "citizen":
         # Get assigned contact person from the profile
@@ -854,10 +875,9 @@ def get_matches(jobs, user, user_type):
             # Calculate average sensory score with the matching scores retrieve using the calculate_sensory_match function as inputs
             sense_score = calculate_sense_avg(auditory_score, visual_score, smell_score, tactile_score, movement_score) # Using the calculate_sense_avg function 
             
-            #print("citizen:",i.title, ":", job_education_match)
             # Match citizens field, job-type, and eduction against the job post requirements
             candidate_score = calculate_candidate_match(job_field_match, job_type_match, job_education_match) # Using the calculate_candidate_match function 
-            #print("candidate_score:",i.title, ":", candidate_score)
+
             # Match employer facility against support needs and relevant sensory scores of citizens
             if user_type == "employer":
                 # Facility match score
@@ -865,10 +885,12 @@ def get_matches(jobs, user, user_type):
                                     i.tactile, i.visual, support_grants)
             elif user_type == "citizen" or user_type == "liaison":
                 # Facility match score
-                facility_score = calculate_facility_match(facility_team, facility_layout, facility_support, sense_profile.auditory, 
-                                                        sense_profile.tactile, sense_profile.visual, support_grants)
+                facility_score = calculate_facility_match(facility_team, facility_noise, facility_layout, facility_support, 
+                                                          sense_profile.auditory,sense_profile.tactile, sense_profile.visual, 
+                                                          support_grants)
                 # Get citizens support and job-type recommendation
-                support_score = calculate_support_needs(auditory_score, visual_score, smell_score, tactile_score, movement_score, experience,education_level)
+                support_score = calculate_support_needs(auditory_score, visual_score, smell_score, tactile_score, movement_score, 
+                                                        experience,education_level)
                 job_type_recommendation = calculate_job_type_recommendation(support_score)
 
             # Calculate overall matching score
@@ -1516,6 +1538,14 @@ def authentication(request):
 def auth_settings(request):
     # Render authentication option template 
     return render(request, 'spectrumjobs/auth_settings.html', {'user_type': request.user.userprofile.user_type}) # Enables live-chat in footer for citizens on auth settings page
+
+
+# ====================================== #
+#           OAUTH 2.0 CALLBACK           #
+#     Succesfull social account auth     #
+# ====================================== #
+def oauth_success(request):
+    return render(request, 'spectrumjobs/index.html')
 
 
 # ====================================== #
