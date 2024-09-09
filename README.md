@@ -50,32 +50,32 @@ This project is licensed under the MIT License.
 &nbsp; 
 &nbsp;
 #### Authentication
-![Home](assets/capture1.PNG)
+![Home](assets/Capture1.PNG)
 &nbsp; 
 &nbsp; 
 
 #### 2FA QR Code generation
-![Home](assets/capture1.PNG)
+![Home](assets/Capture1.PNG)
 &nbsp; 
 &nbsp; 
 
 #### Dashboard
-![Home](assets/capture2.PNG)
+![Home](assets/Capture2.PNG)
 &nbsp; 
 &nbsp; 
 
 #### Portal
-![Trading Cards](assets/capture3.PNG)
+![Trading Cards](assets/Capture3.PNG)
 &nbsp; 
 &nbsp; 
 
 #### Support dashboard
-![Video Games](assets/capture5.PNG)
+![Video Games](assets/Capture5.PNG)
 &nbsp; 
 &nbsp; 
 
 #### Profile and best matches
-![Video Games](assets/capture4.PNG)
+![Video Games](assets/Capture4.PNG)
 &nbsp; 
 &nbsp; 
 
